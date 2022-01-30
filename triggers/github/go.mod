@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/bradleyfalzon/ghinstallation/v2 v2.0.3
-	github.com/clintjedwards/gofer v0.0.2
+	github.com/clintjedwards/gofer v0.0.3
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v42 v42.0.0
 	github.com/rs/zerolog v1.26.1

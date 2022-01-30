@@ -1,12 +1,10 @@
 module github.com/clintjedwards/gofer/triggers/cron
 
-replace github.com/clintjedwards/gofer => ../../
-
 go 1.17
 
 require (
 	github.com/clintjedwards/avail/v2 v2.0.1
-	github.com/clintjedwards/gofer v0.0.2
+	github.com/clintjedwards/gofer v0.0.3
 	github.com/rs/zerolog v1.26.1
 )
 
