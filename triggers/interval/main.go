@@ -54,8 +54,6 @@ func newTrigger() (*trigger, error) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	log.Info().Dur("min_duration", minDuration).Msg("initiating trigger service")
-
 	return &trigger{
 		minDuration:          minDuration,
 		events:               make(chan *sdkProto.CheckResponse, 100),

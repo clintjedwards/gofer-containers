@@ -3,7 +3,7 @@ module github.com/clintjedwards/gofer/triggers/interval
 go 1.17
 
 require (
-	github.com/clintjedwards/gofer v0.0.2
+	github.com/clintjedwards/gofer v0.0.3
 	github.com/rs/zerolog v1.26.1
 )
 
