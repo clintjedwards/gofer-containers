@@ -1,6 +1,6 @@
 FROM golang:1.18 AS build-environment
 
-LABEL org.opencontainers.image.source https://github.com/clintjedwards/gofer-containers
+LABEL org.opencontainers.image.source=https://github.com/clintjedwards/gofer-containers
 
 ARG GOARCH
 ARG SEMVER

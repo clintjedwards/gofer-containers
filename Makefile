@@ -16,6 +16,9 @@ build: check-semver-included
 	docker build -f debug/wait/Dockerfile -t ghcr.io/clintjedwards/gofer-containers/debug/wait:${semver} .
 	docker tag ghcr.io/clintjedwards/gofer-containers/debug/wait:${semver} ghcr.io/clintjedwards/gofer-containers/debug/wait:latest
 
+	docker build -f notifiers/log/Dockerfile -t ghcr.io/clintjedwards/gofer-containers/notifiers/log:${semver} .
+	docker tag ghcr.io/clintjedwards/gofer-containers/notifiers/log:${semver} ghcr.io/clintjedwards/gofer-containers/notifiers/log:latest
+
 ## push: push docker to github
 push: check-semver-included
 	docker push ghcr.io/clintjedwards/gofer-containers/trigger/cron:${semver}
@@ -33,6 +36,9 @@ push: check-semver-included
 	docker push ghcr.io/clintjedwards/gofer-containers/debug/log:latest
 	docker push ghcr.io/clintjedwards/gofer-containers/debug/wait:${semver}
 	docker push ghcr.io/clintjedwards/gofer-containers/debug/wait:latest
+
+	docker push ghcr.io/clintjedwards/gofer-containers/notifiers/log:${semver}
+	docker push ghcr.io/clintjedwards/gofer-containers/notifiers/log:latest
 
 ## help: prints this help message
 help:

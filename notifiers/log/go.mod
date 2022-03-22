@@ -7,8 +7,6 @@ require (
 	google.golang.org/protobuf v1.27.1
 )
 
-replace github.com/clintjedwards/gofer => /home/clintjedwards/Documents/gofer
-
 require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	golang.org/x/net v0.0.0-20220105145211-5b0dc2dfae98 // indirect
