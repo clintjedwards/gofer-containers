@@ -10,22 +10,18 @@ import (
 var version = "test"
 
 var corpus = `
-This planet has — or rather had — a problem, which was this:
-most of the people living on it were unhappy for pretty much
-all of the time. Many solutions were suggested for this problem,
-but most of these were largely concerned with the movement of small
-green pieces of paper, which was odd because on the whole it wasn't
-the small green pieces of paper that were unhappy.
+The professionals are doomed in all their vainglory to be perpetually embarking
+on the Sisyphean task of a unified and integrated Linux ecosystem,
+even if it means turning the kernel into a runtime for the BPF virtual machine,
+or making a Rube Goldberg machine of build and deployment pipelines,
+as appears to be the most recent trend. The hobbyists are doomed to
+shout in the void with no one to hear them. In this tragedy the only victor is chaos
+and discord itself, which disguises itself as “progress.”
 
-I am bored, that's all. From time to time I yawn so widely that tears
-roll down my cheek. It is a profound boredom, profound, the profound
-heart of existence, the very matter I am made of. I do not neglect
-myself, quite the contrary: this morning I took a bath and shaved.
-Only when I think back over those careful little actions, I cannot
-understand how I was able to make them: they are so vain.
-Habit, no doubt, made them for me. They aren't dead,
-they keep on busying themselves, gently, insidiously weaving
-their webs, they wash me, dry me, dress me, like nurses.
+All that is guaranteed is permanent revolution through constant reinvention,
+where by revolution we mean running around in circles. The suits and ties
+have forgotten what it was to be Yippies, and for their part the Yippies are fools
+who are had by ideas, rather than having ideas.
 `
 
 func main() {
