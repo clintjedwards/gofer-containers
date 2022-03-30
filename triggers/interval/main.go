@@ -1,14 +1,15 @@
-// Trigger interval just simply triggers the Subscribeed pipeline at the time it designates in seconds.
+// Trigger interval simply triggers the subscribed pipeline repeatedly at the given interval.
 package main
 
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/clintjedwards/gofer/sdk"
 	sdkProto "github.com/clintjedwards/gofer/sdk/proto"
+	"github.com/clintjedwards/polyfmt"
+	"github.com/fatih/color"
 	"github.com/rs/zerolog/log"
 )
 
@@ -18,6 +19,11 @@ const (
 	//
 	// Examples: "1m", "60s", "3h", "3m30s"
 	ParameterEvery = "every"
+)
+
+const (
+	// The minimum duration pipelines can set for the "every" parameter.
+	ConfigMinDuration = "min_duration"
 )
 
 type subscription struct {
@@ -42,7 +48,7 @@ type trigger struct {
 }
 
 func newTrigger() (*trigger, error) {
-	minDurationStr := os.Getenv("GOFER_TRIGGER_INTERVAL_MIN_DURATION")
+	minDurationStr := sdk.GetConfig(ConfigMinDuration)
 	minDuration := time.Minute * 1
 	if minDurationStr != "" {
 		parsedDuration, err := time.ParseDuration(minDurationStr)
@@ -142,10 +148,7 @@ func (t *trigger) Unsubscribe(ctx context.Context, request *sdkProto.Unsubscribe
 }
 
 func (t *trigger) Info(ctx context.Context, request *sdkProto.InfoRequest) (*sdkProto.InfoResponse, error) {
-	return &sdkProto.InfoResponse{
-		Kind:          os.Getenv("GOFER_TRIGGER_KIND"),
-		Documentation: "https://clintjedwards.com/gofer/docs/triggers/interval/overview",
-	}, nil
+	return sdk.InfoResponse("https://clintjedwards.com/gofer/docs/triggers/interval/overview")
 }
 
 func (t *trigger) ExternalEvent(ctx context.Context, request *sdkProto.ExternalEventRequest) (*sdkProto.ExternalEventResponse, error) {
@@ -159,10 +162,62 @@ func (t *trigger) Shutdown(ctx context.Context, request *sdkProto.ShutdownReques
 	return &sdkProto.ShutdownResponse{}, nil
 }
 
+func mustInitFormatter() polyfmt.Formatter {
+	fmtter, err := polyfmt.NewFormatter(polyfmt.Pretty, false)
+	if err != nil {
+		log.Fatal().Err(err).Msg("could not start formatter")
+	}
+	return fmtter
+}
+
+func installer() {
+	fmtter := mustInitFormatter()
+	headerColor := color.New(color.Underline, color.Bold, color.FgBlue)
+
+	fmtter.Println(headerColor.Sprintf("Interval Trigger Setup\n"))
+	fmtter.Println(":: The interval trigger allows users to trigger their pipelines on the " +
+		"passage of time by setting a particular duration.\n")
+	fmtter.Println("First, let's prevent users from setting too low of an interval by setting a minimum duration. " +
+		"Durations are set via Golang duration strings. For example, entering a duration of '10h' would be 10 hours. " +
+		"You can find more documentation on valid strings here: https://pkg.go.dev/time#ParseDuration.\n")
+
+	fmtter.Finish()
+	var minDuration string
+	fmt.Print("> Set a minimum duration for all pipelines: ")
+	fmt.Scanln(&minDuration)
+	fmtter = mustInitFormatter()
+
+	_, err := time.ParseDuration(minDuration)
+	if err != nil {
+		fmtter.PrintSuccess(fmt.Sprintf("minimum duration string %q is invalid: %v", minDuration, err))
+		fmtter.Finish()
+		return
+	}
+	fmtter.PrintSuccess(fmt.Sprintf("Valid minimum duration %q set.", minDuration))
+	fmtter.PrintSuccess("Trigger configuration complete.")
+	fmtter.Println("")
+
+	fmtter.Print("Registering Trigger")
+
+	config := map[string]string{
+		"MIN_DURATION": minDuration,
+	}
+
+	err = sdk.InstallTrigger(config)
+	if err != nil {
+		fmtter.PrintErr(fmt.Sprintf("could not register trigger: %v", err))
+		fmtter.Finish()
+		return
+	}
+
+	fmtter.PrintSuccess("Registered Trigger")
+	fmtter.Finish()
+}
+
 func main() {
 	trigger, err := newTrigger()
 	if err != nil {
 		panic(err)
 	}
-	sdk.NewTriggerServer(trigger)
+	sdk.NewTrigger(trigger, installer)
 }
