@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/clintjedwards/gofer/sdk"
-	sdkProto "github.com/clintjedwards/gofer/sdk/proto"
+	sdk "github.com/clintjedwards/gofer/gofer_sdk/go"
+	"github.com/clintjedwards/gofer/gofer_sdk/go/proto"
 	"github.com/clintjedwards/polyfmt"
 	"github.com/fatih/color"
 	"github.com/rs/zerolog/log"
@@ -40,11 +40,13 @@ type subscriptionID struct {
 }
 
 type trigger struct {
-	minDuration          time.Duration
-	events               chan *sdkProto.CheckResponse // in-memory store to be passed to the main program through the check function
+	minDuration time.Duration
+	// in-memory store to be passed to the main program through the watch function
 	quitAllSubscriptions context.CancelFunc
+	events               chan *proto.WatchResponse
 	parentContext        context.Context
-	subscriptions        map[subscriptionID]*subscription // mapping of subscription id to quit channel so we can reap the goroutines.
+	// mapping of subscription id to quit channel so we can reap the goroutines.
+	subscriptions map[subscriptionID]*subscription
 }
 
 func newTrigger() (*trigger, error) {
@@ -62,7 +64,7 @@ func newTrigger() (*trigger, error) {
 
 	return &trigger{
 		minDuration:          minDuration,
-		events:               make(chan *sdkProto.CheckResponse, 100),
+		events:               make(chan *proto.WatchResponse, 100),
 		quitAllSubscriptions: cancel,
 		parentContext:        ctx,
 		subscriptions:        map[subscriptionID]*subscription{},
@@ -75,12 +77,12 @@ func (t *trigger) startInterval(ctx context.Context, pipeline, namespace, pipeli
 		case <-ctx.Done():
 			return
 		case <-time.After(duration):
-			t.events <- &sdkProto.CheckResponse{
+			t.events <- &proto.WatchResponse{
 				Details:              "Triggered due to the passage of time.",
 				PipelineTriggerLabel: pipelineTriggerLabel,
 				NamespaceId:          namespace,
 				PipelineId:           pipeline,
-				Result:               sdkProto.CheckResponse_SUCCESS,
+				Result:               proto.WatchResponse_SUCCESS,
 				Metadata:             map[string]string{},
 			}
 			log.Debug().Str("namespaceID", namespace).Str("pipelineID", pipeline).
@@ -89,7 +91,7 @@ func (t *trigger) startInterval(ctx context.Context, pipeline, namespace, pipeli
 	}
 }
 
-func (t *trigger) Subscribe(ctx context.Context, request *sdkProto.SubscribeRequest) (*sdkProto.SubscribeResponse, error) {
+func (t *trigger) Subscribe(ctx context.Context, request *proto.SubscribeRequest) (*proto.SubscribeResponse, error) {
 	interval, exists := request.Config[ParameterEvery]
 	if !exists {
 		return nil, fmt.Errorf("could not find required configuration parameter %q", ParameterEvery)
@@ -114,26 +116,26 @@ func (t *trigger) Subscribe(ctx context.Context, request *sdkProto.SubscribeRequ
 	go t.startInterval(subctx, request.PipelineId, request.NamespaceId, request.PipelineTriggerLabel, duration)
 
 	log.Debug().Str("namespace_id", request.NamespaceId).Str("trigger_label", request.PipelineTriggerLabel).Str("pipeline_id", request.PipelineId).Msg("subscribed pipeline")
-	return &sdkProto.SubscribeResponse{}, nil
+	return &proto.SubscribeResponse{}, nil
 }
 
-func (t *trigger) Check(ctx context.Context, request *sdkProto.CheckRequest) (*sdkProto.CheckResponse, error) {
+func (t *trigger) Watch(ctx context.Context, request *proto.WatchRequest) (*proto.WatchResponse, error) {
 	select {
 	case <-ctx.Done():
-		return &sdkProto.CheckResponse{}, nil
+		return &proto.WatchResponse{}, nil
 	case event := <-t.events:
 		return event, nil
 	}
 }
 
-func (t *trigger) Unsubscribe(ctx context.Context, request *sdkProto.UnsubscribeRequest) (*sdkProto.UnsubscribeResponse, error) {
+func (t *trigger) Unsubscribe(ctx context.Context, request *proto.UnsubscribeRequest) (*proto.UnsubscribeResponse, error) {
 	subscription, exists := t.subscriptions[subscriptionID{
 		pipelineTriggerLabel: request.PipelineTriggerLabel,
 		pipeline:             request.PipelineId,
 		namespace:            request.NamespaceId,
 	}]
 	if !exists {
-		return &sdkProto.UnsubscribeResponse{},
+		return &proto.UnsubscribeResponse{},
 			fmt.Errorf("could not find subscription for trigger %s pipeline %s namespace %s",
 				request.PipelineTriggerLabel, request.PipelineId, request.NamespaceId)
 	}
@@ -144,22 +146,22 @@ func (t *trigger) Unsubscribe(ctx context.Context, request *sdkProto.Unsubscribe
 		pipeline:             request.PipelineId,
 		namespace:            request.NamespaceId,
 	})
-	return &sdkProto.UnsubscribeResponse{}, nil
+	return &proto.UnsubscribeResponse{}, nil
 }
 
-func (t *trigger) Info(ctx context.Context, request *sdkProto.InfoRequest) (*sdkProto.InfoResponse, error) {
+func (t *trigger) Info(ctx context.Context, request *proto.InfoRequest) (*proto.InfoResponse, error) {
 	return sdk.InfoResponse("https://clintjedwards.com/gofer/docs/triggers/interval/overview")
 }
 
-func (t *trigger) ExternalEvent(ctx context.Context, request *sdkProto.ExternalEventRequest) (*sdkProto.ExternalEventResponse, error) {
-	return &sdkProto.ExternalEventResponse{}, nil
+func (t *trigger) ExternalEvent(ctx context.Context, request *proto.ExternalEventRequest) (*proto.ExternalEventResponse, error) {
+	return &proto.ExternalEventResponse{}, nil
 }
 
-func (t *trigger) Shutdown(ctx context.Context, request *sdkProto.ShutdownRequest) (*sdkProto.ShutdownResponse, error) {
+func (t *trigger) Shutdown(ctx context.Context, request *proto.ShutdownRequest) (*proto.ShutdownResponse, error) {
 	t.quitAllSubscriptions()
 	close(t.events)
 
-	return &sdkProto.ShutdownResponse{}, nil
+	return &proto.ShutdownResponse{}, nil
 }
 
 func mustInitFormatter() polyfmt.Formatter {
