@@ -2,12 +2,8 @@ module github.com/clintjedwards/gofer/triggers/interval
 
 go 1.18
 
-replace github.com/clintjedwards/gofer => /home/clintjedwards/Documents/gofer
-
-replace github.com/clintjedwards/gofer/gofer_sdk/go => /home/clintjedwards/Documents/gofer/gofer_sdk/go
-
 require (
-	github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-00010101000000-000000000000
+	github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220617070305-dc1f8d15bf24
 	github.com/clintjedwards/polyfmt v0.4.0
 	github.com/fatih/color v1.13.0
 	github.com/rs/zerolog v1.27.0
