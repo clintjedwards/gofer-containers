@@ -1,11 +1,11 @@
 module github.com/clintjedwards/gofer/triggers/interval
 
+replace github.com/clintjedwards/gofer/gofer_sdk/go => /home/clintjedwards/Documents/gofer/gofer_sdk/go
+
 go 1.18
 
 require (
-	github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220617070305-dc1f8d15bf24
-	github.com/clintjedwards/polyfmt v0.4.0
-	github.com/fatih/color v1.13.0
+	github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-00010101000000-000000000000
 	github.com/rs/zerolog v1.27.0
 )
 
@@ -16,9 +16,6 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/mattn/go-runewidth v0.0.13 // indirect
-	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/theckman/yacspin v0.13.12 // indirect
 	golang.org/x/net v0.0.0-20220615171555-694bf12d69de // indirect
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
 	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c // indirect

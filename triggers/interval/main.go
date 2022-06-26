@@ -8,8 +8,6 @@ import (
 
 	sdk "github.com/clintjedwards/gofer/gofer_sdk/go"
 	"github.com/clintjedwards/gofer/gofer_sdk/go/proto"
-	"github.com/clintjedwards/polyfmt"
-	"github.com/fatih/color"
 	"github.com/rs/zerolog/log"
 )
 
@@ -43,7 +41,7 @@ type trigger struct {
 	minDuration time.Duration
 	// in-memory store to be passed to the main program through the watch function
 	quitAllSubscriptions context.CancelFunc
-	events               chan *proto.WatchResponse
+	events               chan *proto.TriggerWatchResponse
 	parentContext        context.Context
 	// mapping of subscription id to quit channel so we can reap the goroutines.
 	subscriptions map[subscriptionID]*subscription
@@ -64,7 +62,7 @@ func newTrigger() (*trigger, error) {
 
 	return &trigger{
 		minDuration:          minDuration,
-		events:               make(chan *proto.WatchResponse, 100),
+		events:               make(chan *proto.TriggerWatchResponse, 100),
 		quitAllSubscriptions: cancel,
 		parentContext:        ctx,
 		subscriptions:        map[subscriptionID]*subscription{},
@@ -77,12 +75,12 @@ func (t *trigger) startInterval(ctx context.Context, pipeline, namespace, pipeli
 		case <-ctx.Done():
 			return
 		case <-time.After(duration):
-			t.events <- &proto.WatchResponse{
+			t.events <- &proto.TriggerWatchResponse{
 				Details:              "Triggered due to the passage of time.",
 				PipelineTriggerLabel: pipelineTriggerLabel,
 				NamespaceId:          namespace,
 				PipelineId:           pipeline,
-				Result:               proto.WatchResponse_SUCCESS,
+				Result:               proto.TriggerWatchResponse_SUCCESS,
 				Metadata:             map[string]string{},
 			}
 			log.Debug().Str("namespaceID", namespace).Str("pipelineID", pipeline).
@@ -91,7 +89,7 @@ func (t *trigger) startInterval(ctx context.Context, pipeline, namespace, pipeli
 	}
 }
 
-func (t *trigger) Subscribe(ctx context.Context, request *proto.SubscribeRequest) (*proto.SubscribeResponse, error) {
+func (t *trigger) Subscribe(ctx context.Context, request *proto.TriggerSubscribeRequest) (*proto.TriggerSubscribeResponse, error) {
 	interval, exists := request.Config[ParameterEvery]
 	if !exists {
 		return nil, fmt.Errorf("could not find required configuration parameter %q", ParameterEvery)
@@ -116,26 +114,26 @@ func (t *trigger) Subscribe(ctx context.Context, request *proto.SubscribeRequest
 	go t.startInterval(subctx, request.PipelineId, request.NamespaceId, request.PipelineTriggerLabel, duration)
 
 	log.Debug().Str("namespace_id", request.NamespaceId).Str("trigger_label", request.PipelineTriggerLabel).Str("pipeline_id", request.PipelineId).Msg("subscribed pipeline")
-	return &proto.SubscribeResponse{}, nil
+	return &proto.TriggerSubscribeResponse{}, nil
 }
 
-func (t *trigger) Watch(ctx context.Context, request *proto.WatchRequest) (*proto.WatchResponse, error) {
+func (t *trigger) Watch(ctx context.Context, request *proto.TriggerWatchRequest) (*proto.TriggerWatchResponse, error) {
 	select {
 	case <-ctx.Done():
-		return &proto.WatchResponse{}, nil
+		return &proto.TriggerWatchResponse{}, nil
 	case event := <-t.events:
 		return event, nil
 	}
 }
 
-func (t *trigger) Unsubscribe(ctx context.Context, request *proto.UnsubscribeRequest) (*proto.UnsubscribeResponse, error) {
+func (t *trigger) Unsubscribe(ctx context.Context, request *proto.TriggerUnsubscribeRequest) (*proto.TriggerUnsubscribeResponse, error) {
 	subscription, exists := t.subscriptions[subscriptionID{
 		pipelineTriggerLabel: request.PipelineTriggerLabel,
 		pipeline:             request.PipelineId,
 		namespace:            request.NamespaceId,
 	}]
 	if !exists {
-		return &proto.UnsubscribeResponse{},
+		return &proto.TriggerUnsubscribeResponse{},
 			fmt.Errorf("could not find subscription for trigger %s pipeline %s namespace %s",
 				request.PipelineTriggerLabel, request.PipelineId, request.NamespaceId)
 	}
@@ -146,74 +144,97 @@ func (t *trigger) Unsubscribe(ctx context.Context, request *proto.UnsubscribeReq
 		pipeline:             request.PipelineId,
 		namespace:            request.NamespaceId,
 	})
-	return &proto.UnsubscribeResponse{}, nil
+	return &proto.TriggerUnsubscribeResponse{}, nil
 }
 
-func (t *trigger) Info(ctx context.Context, request *proto.InfoRequest) (*proto.InfoResponse, error) {
+func (t *trigger) Info(ctx context.Context, request *proto.TriggerInfoRequest) (*proto.TriggerInfoResponse, error) {
 	return sdk.InfoResponse("https://clintjedwards.com/gofer/docs/triggers/interval/overview")
 }
 
-func (t *trigger) ExternalEvent(ctx context.Context, request *proto.ExternalEventRequest) (*proto.ExternalEventResponse, error) {
-	return &proto.ExternalEventResponse{}, nil
+func (t *trigger) ExternalEvent(ctx context.Context, request *proto.TriggerExternalEventRequest) (*proto.TriggerExternalEventResponse, error) {
+	return &proto.TriggerExternalEventResponse{}, nil
 }
 
-func (t *trigger) Shutdown(ctx context.Context, request *proto.ShutdownRequest) (*proto.ShutdownResponse, error) {
+func (t *trigger) Shutdown(ctx context.Context, request *proto.TriggerShutdownRequest) (*proto.TriggerShutdownResponse, error) {
 	t.quitAllSubscriptions()
 	close(t.events)
 
-	return &proto.ShutdownResponse{}, nil
+	return &proto.TriggerShutdownResponse{}, nil
 }
 
-func mustInitFormatter() polyfmt.Formatter {
-	fmtter, err := polyfmt.NewFormatter(polyfmt.Pretty, false)
+func (t *trigger) Install(stream proto.TriggerService_InstallServer) error {
+	err := stream.Send(wrapSendMessage(":: The interval trigger allows users to trigger their pipelines on the " +
+		"passage of time by setting a particular duration."))
 	if err != nil {
-		log.Fatal().Err(err).Msg("could not start formatter")
+		return err
 	}
-	return fmtter
-}
-
-func installer() {
-	fmtter := mustInitFormatter()
-	headerColor := color.New(color.Underline, color.Bold, color.FgBlue)
-
-	fmtter.Println(headerColor.Sprintf("Interval Trigger Setup\n"))
-	fmtter.Println(":: The interval trigger allows users to trigger their pipelines on the " +
-		"passage of time by setting a particular duration.\n")
-	fmtter.Println("First, let's prevent users from setting too low of an interval by setting a minimum duration. " +
+	err = stream.Send(wrapSendMessage("First, let's prevent users from setting too low of an interval by setting a minimum duration. " +
 		"Durations are set via Golang duration strings. For example, entering a duration of '10h' would be 10 hours. " +
-		"You can find more documentation on valid strings here: https://pkg.go.dev/time#ParseDuration.\n")
-
-	fmtter.Finish()
-	var minDuration string
-	fmt.Print("> Set a minimum duration for all pipelines: ")
-	fmt.Scanln(&minDuration)
-	fmtter = mustInitFormatter()
-
-	_, err := time.ParseDuration(minDuration)
+		"You can find more documentation on valid strings here: https://pkg.go.dev/time#ParseDuration.\n"))
 	if err != nil {
-		fmtter.PrintSuccess(fmt.Sprintf("minimum duration string %q is invalid: %v", minDuration, err))
-		fmtter.Finish()
-		return
+		return err
 	}
-	fmtter.PrintSuccess(fmt.Sprintf("Valid minimum duration %q set.", minDuration))
-	fmtter.PrintSuccess("Trigger configuration complete.")
-	fmtter.Println("")
+	err = stream.Send(wrapSendQuery("Set a minimum duration for all pipelines: "))
+	if err != nil {
+		return err
+	}
 
-	fmtter.Print("Registering Trigger")
+	var minDuration string
+	resp, err := stream.Recv()
+	if err != nil {
+		return err
+	}
+
+	_, err = time.ParseDuration(resp.Message)
+	if err != nil {
+		err = stream.Send(wrapSendMessage(fmt.Sprintf("minimum duration string %q is invalid: %v", minDuration, err)))
+		if err != nil {
+			return err
+		}
+
+		return fmt.Errorf("error setting up trigger")
+	}
 
 	config := map[string]string{
 		"MIN_DURATION": minDuration,
 	}
 
-	err = sdk.InstallTrigger(config)
+	err = stream.Send(wrapSendConfig(config))
 	if err != nil {
-		fmtter.PrintErr(fmt.Sprintf("could not register trigger: %v", err))
-		fmtter.Finish()
-		return
+		return err
 	}
 
-	fmtter.PrintSuccess("Registered Trigger")
-	fmtter.Finish()
+	return nil
+}
+
+func (t *trigger) Uninstall(stream proto.TriggerService_UninstallServer) error {
+	return nil
+}
+
+func wrapSendMessage(msg string) *proto.TriggerInstallResponse {
+	return &proto.TriggerInstallResponse{
+		Response: &proto.TriggerInstallResponse_Message{
+			Message: msg,
+		},
+	}
+}
+
+func wrapSendQuery(msg string) *proto.TriggerInstallResponse {
+	return &proto.TriggerInstallResponse{
+		Response: &proto.TriggerInstallResponse_Query{
+			Query: msg,
+		},
+	}
+}
+
+func wrapSendConfig(config map[string]string) *proto.TriggerInstallResponse {
+	return &proto.TriggerInstallResponse{
+		Response: &proto.TriggerInstallResponse_Config{
+			Config: &proto.TriggerConfigResponse{
+				Config: config,
+			},
+		},
+	}
 }
 
 func main() {
@@ -221,5 +242,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	sdk.NewTrigger(trigger, installer)
+	sdk.NewTrigger(trigger)
 }
