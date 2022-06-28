@@ -162,79 +162,15 @@ func (t *trigger) Shutdown(ctx context.Context, request *proto.TriggerShutdownRe
 	return &proto.TriggerShutdownResponse{}, nil
 }
 
-func (t *trigger) Install(stream proto.TriggerService_InstallServer) error {
-	err := stream.Send(wrapSendMessage(":: The interval trigger allows users to trigger their pipelines on the " +
-		"passage of time by setting a particular duration."))
-	if err != nil {
-		return err
-	}
-	err = stream.Send(wrapSendMessage("First, let's prevent users from setting too low of an interval by setting a minimum duration. " +
-		"Durations are set via Golang duration strings. For example, entering a duration of '10h' would be 10 hours. " +
-		"You can find more documentation on valid strings here: https://pkg.go.dev/time#ParseDuration.\n"))
-	if err != nil {
-		return err
-	}
-	err = stream.Send(wrapSendQuery("Set a minimum duration for all pipelines: "))
-	if err != nil {
-		return err
-	}
+func (t *trigger) InstallInstructions(ctx context.Context, request *proto.TriggerInstallInstructionsRequest) (*proto.TriggerInstallInstructionsResponse, error) {
+	instructions := sdk.NewInstructionsBuilder()
+	instructions.AddText(":: The interval trigger allows users to trigger their pipelines on the passage of time by setting a particular duration.").
+		AddText("First, let's prevent users from setting too low of an interval by setting a minimum duration. "+
+			"Durations are set via Golang duration strings. For example, entering a duration of '10h' would be 10 hours. "+
+			"You can find more documentation on valid strings here: https://pkg.go.dev/time#ParseDuration.\n").
+		AddQuery("Set a minimum duration for all pipelines", ConfigMinDuration)
 
-	var minDuration string
-	resp, err := stream.Recv()
-	if err != nil {
-		return err
-	}
-
-	_, err = time.ParseDuration(resp.Message)
-	if err != nil {
-		err = stream.Send(wrapSendMessage(fmt.Sprintf("minimum duration string %q is invalid: %v", minDuration, err)))
-		if err != nil {
-			return err
-		}
-
-		return fmt.Errorf("error setting up trigger")
-	}
-
-	config := map[string]string{
-		"MIN_DURATION": minDuration,
-	}
-
-	err = stream.Send(wrapSendConfig(config))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (t *trigger) Uninstall(stream proto.TriggerService_UninstallServer) error {
-	return nil
-}
-
-func wrapSendMessage(msg string) *proto.TriggerInstallResponse {
-	return &proto.TriggerInstallResponse{
-		Response: &proto.TriggerInstallResponse_Message{
-			Message: msg,
-		},
-	}
-}
-
-func wrapSendQuery(msg string) *proto.TriggerInstallResponse {
-	return &proto.TriggerInstallResponse{
-		Response: &proto.TriggerInstallResponse_Query{
-			Query: msg,
-		},
-	}
-}
-
-func wrapSendConfig(config map[string]string) *proto.TriggerInstallResponse {
-	return &proto.TriggerInstallResponse{
-		Response: &proto.TriggerInstallResponse_Config{
-			Config: &proto.TriggerConfigResponse{
-				Config: config,
-			},
-		},
-	}
+	return instructions.ToProtoResponse(), nil
 }
 
 func main() {
