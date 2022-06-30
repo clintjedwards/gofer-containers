@@ -3,7 +3,7 @@ module github.com/clintjedwards/gofer/triggers/interval
 go 1.18
 
 require (
-	github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220628185057-038af8d9ca9d
+	github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220630055712-81ba607337fb
 	github.com/rs/zerolog v1.27.0
 )
 
@@ -16,7 +16,7 @@ require (
 	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
 	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20220627200112-0a929928cb33 // indirect
+	google.golang.org/genproto v0.0.0-20220628213854-d9e0b6570c03 // indirect
 	google.golang.org/grpc v1.47.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 )

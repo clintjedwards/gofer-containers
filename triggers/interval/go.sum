@@ -10,6 +10,10 @@ github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220628182349-033ef11ca6fa h
 github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220628182349-033ef11ca6fa/go.mod h1:7hij025rAFo1t+7GoIlBAsS9cXSj0I2ZiLF508AcgwQ=
 github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220628185057-038af8d9ca9d h1:9PGy2UPHy+rt8gcv8CYnLlFOY541tCmtsXqbQX4yDZg=
 github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220628185057-038af8d9ca9d/go.mod h1:7hij025rAFo1t+7GoIlBAsS9cXSj0I2ZiLF508AcgwQ=
+github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220628210020-25a97e8ac0b5 h1:1mrXQD5HWJ71oXYMP1Ha/3PPuHiX01fwOuRO6+II81U=
+github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220628210020-25a97e8ac0b5/go.mod h1:oMHftY1ww25CPyP5VqPDDXU2mVUb6dxBpQ8HgFfW/O8=
+github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220630055712-81ba607337fb h1:roCL9VwwdfzAMAqxjfDRZZONp78uVLWAyYUYS8HfOVo=
+github.com/clintjedwards/gofer/gofer_sdk/go v0.0.0-20220630055712-81ba607337fb/go.mod h1:oMHftY1ww25CPyP5VqPDDXU2mVUb6dxBpQ8HgFfW/O8=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
 github.com/cncf/udpa/go v0.0.0-20210930031921-04548b0d99d4/go.mod h1:6pvJx4me5XPnfI9Z40ddWsdw2W/uZgQLFXToKeRcDiI=
@@ -168,6 +172,8 @@ google.golang.org/genproto v0.0.0-20200513103714-09dca8ec2884/go.mod h1:55QSHmfG
 google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013/go.mod h1:NbSheEEYHJ7i3ixzK3sjbqSGDJWnxyFXZblF3eUsNvo=
 google.golang.org/genproto v0.0.0-20220627200112-0a929928cb33 h1:3L4edWcjDHPWGcMl1N0YH1NSoasyvfEcZCe2rUbxHfs=
 google.golang.org/genproto v0.0.0-20220627200112-0a929928cb33/go.mod h1:KEWEmljWE5zPzLBa/oHl6DaEt9LmfH6WtH1OHIvleBA=
+google.golang.org/genproto v0.0.0-20220628213854-d9e0b6570c03 h1:W70HjnmXFJm+8RNjOpIDYW2nKsSi/af0VvIZUtYkwuU=
+google.golang.org/genproto v0.0.0-20220628213854-d9e0b6570c03/go.mod h1:KEWEmljWE5zPzLBa/oHl6DaEt9LmfH6WtH1OHIvleBA=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.23.0/go.mod h1:Y5yQAOtifL1yxbo5wqy6BxZv8vAUGQwXBOALyacEbxg=
 google.golang.org/grpc v1.25.1/go.mod h1:c3i+UQWmh7LiEpx4sFZnkU36qjEYZ0imhYfXVyQciAY=
