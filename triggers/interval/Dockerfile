@@ -15,4 +15,4 @@ RUN go build -o /build/trigger
 FROM gcr.io/distroless/static
 WORKDIR /app
 COPY --from=build-environment /build /app
-ENTRYPOINT [ "./trigger" ]
+ENTRYPOINT [ "./trigger", "server" ]

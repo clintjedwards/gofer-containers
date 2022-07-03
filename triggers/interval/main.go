@@ -166,9 +166,11 @@ func installInstructions() sdk.InstallInstructions {
 	instructions := sdk.NewInstructionsBuilder()
 	instructions = instructions.AddMessage(":: The interval trigger allows users to trigger their pipelines on the passage"+
 		" of time by setting a particular duration.").
+		AddMessage("").
 		AddMessage("First, let's prevent users from setting too low of an interval by setting a minimum duration. "+
-			"Durations are set via Golang duration strings. For example, entering a duration of '10h' would be 10 hours. "+
-			"You can find more documentation on valid strings here: https://pkg.go.dev/time#ParseDuration.\n").
+			"Durations are set via Golang duration strings. For example, entering a duration of '10h' would be 10 hours, "+
+			"meaning that users can only run their pipeline at most every 10 hours. "+
+			"You can find more documentation on valid strings here: https://pkg.go.dev/time#ParseDuration.").
 		AddQuery("Set a minimum duration for all pipelines", ConfigMinDuration)
 
 	return instructions
